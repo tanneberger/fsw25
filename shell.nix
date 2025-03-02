@@ -103,7 +103,7 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    export REACTOR_UC_PATH=../reactor-uc
+    export REACTOR_UC_PATH=$(pwd)/../reactor-uc
     export OBJDUMP=${buildPackages.gcc-arm-embedded}/arm-none-eabi/bin/objdump
     export OBJCOPY=${buildPackages.gcc-arm-embedded}/arm-none-eabi/bin/objcopy
   '';

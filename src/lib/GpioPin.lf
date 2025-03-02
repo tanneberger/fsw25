@@ -1,0 +1,31 @@
+target uC
+
+preamble {=
+    //#include "hardware/gpio.h"
+=}
+
+reactor GpioPin(pin: int = 8) {
+    input toggle: int;
+    input set: bool;
+
+    state high: bool;
+
+    reaction (startup) {=
+        self->high = false;
+
+        //gpio_init(self->pin);
+        //gpio_set_dir(self->pin, GPIO_OUT);
+    =}
+
+    reaction (toggle) {=
+        self->high = !self->high;
+        //gpio_put(self->pin, self->high);
+    =}
+
+    reaction (set) {=
+        if (set->super.super.is_present) {
+            self->high = set->value;
+        }
+        //gpio_put(self->pin, self->high);
+    =}
+}

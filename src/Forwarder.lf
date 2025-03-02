@@ -1,0 +1,37 @@
+target uC;
+
+
+preamble {=
+    #include "common.h"
+    typedef struct FedData FedData;
+
+    struct FedData {
+        int status;
+    };
+
+
+=}
+
+reactor Forwarder {
+    input forwarding_information: ForwardInformation;
+
+    input left_neighbor_data_in: int;
+    input right_neighbor_data_in: int;
+    input self_data_in: int;
+
+    output left_neighbor_data_out: int;
+    output right_neighbor_data_out: int;
+    output self_data_out: int;
+
+    reaction (left_neighbor_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out {=
+
+    =}
+
+    reaction (right_neighbor_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out {=
+
+    =}
+
+    reaction (self_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out  {=
+
+    =}
+}

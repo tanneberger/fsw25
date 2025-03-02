@@ -1,0 +1,59 @@
+target uC
+
+preamble {=
+    /*
+    #include <stdio.h>
+    #include "hardware/i2c.h"
+    #include "pico/binary_info.h"
+    #include "pico/stdlib.h"
+    */
+
+    #define VEML7700_ADDR 0x10
+    #define VEML7700_REG 0x4
+    #define VEML7700_SDA_PIN 16
+    #define VEML7700_SCL_PIN 17
+    #define VEML7700_TIMEOUT 100000
+=}
+
+
+reactor Veml7700(rate: interval_t = 250msec) {
+    timer read_sensor_timer(500msec, rate);
+
+    output sensor_value: int;
+
+    reaction (startup) {=
+        // useful information for picotool
+        /*bi_decl(bi_2pins_with_func(VEML7700_SDA_PIN, VEML7700_SCL_PIN, GPIO_FUNC_I2C));
+        bi_decl(bi_program_description("BMP280 I2C example for the Raspberry Pi Pico"));
+
+        printf("setting up i2c device\n");
+        // I2C is "open drain", pull ups to keep signal high when no data is being sent
+       
+        i2c_init(i2c_default, 30 * 1000);
+        gpio_set_function(VEML7700_SDA_PIN, GPIO_FUNC_I2C);
+        gpio_set_function(VEML7700_SCL_PIN, GPIO_FUNC_I2C);
+        gpio_pull_up(VEML7700_SDA_PIN);
+        gpio_pull_up(VEML7700_SCL_PIN);
+
+        printf("configuring veml7700 sensor\n");
+        uint16_t conf_value = 6144;
+
+        uint8_t message[3]; // Include command and data to send
+        message[0] = 0;
+        message[1] = 6144 & 0xFF; // LSB
+        message[2] = 6144 >> 8;   // MSB
+        i2c_write_blocking(i2c_default, VEML7700_ADDR, message, 3, false);*/
+    =}
+
+    reaction (read_sensor_timer) -> sensor_value {=
+        printf("reading sensor values!\n");
+        uint16_t read_sensor_value = 0x0;
+        /*
+        uint8_t reg = VEML7700_REG;
+        i2c_write_blocking(i2c_default, VEML7700_ADDR, &reg, 1, true);
+        i2c_read_timeout_us(i2c_default, VEML7700_ADDR, &read_sensor_value, 2, false, VEML7700_TIMEOUT);
+        printf("reading value %i\n", read_sensor_value);*/
+        lf_set(sensor_value, (int)read_sensor_value);
+    =}
+}
+

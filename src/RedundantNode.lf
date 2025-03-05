@@ -1,14 +1,20 @@
 target uC
 
+import LedController from "./LedController.lf"
 import Failover from "./Failover.lf"
 import Forwarder from "./Forwarder.lf"
 import Veml7700 from "./lib/Veml7700.lf"
 import GpioPin from "./lib/GpioPin.lf"
 
-/*reactor RedundantNode(my_id: int = 0, left: int = 1, right: int = 2) {
+preamble {=
+    #include "common.h"
+=}
+
+reactor RedundantNode(my_id: int = 0, left: int = 1, right: int = 2) {
     failover = new Failover(my_id = my_id, left = left, right = right);
     forwarder = new Forwarder();
-    sensor = new Veml7700(rate=250msec);
+    veml7700 = new Veml7700(rate=250msec);
+    controller = new LedController(rate = 500msec);
 
     gpio_left = new GpioPin(pin = 20);
     gpio_leader = new GpioPin(pin = 19);
@@ -24,120 +30,62 @@ import GpioPin from "./lib/GpioPin.lf"
 
     state leader: bool = false;
 
+    
+    //TOOD: uncomment me for federated
     input left_neighbor_in: NeighborInformation;
     input right_neighbor_in: NeighborInformation;
     output left_neighbor_out: NeighborInformation;
     output right_neighbor_out: NeighborInformation;
 
-    output left_neighbor_data_out: FedData;
-    output right_neighbor_data_out: FedData;
-    input left_neighbor_data_in: FedData;
-    input right_neighbor_data_in: FedData;
+    output left_neighbor_data_out: FederatedData;
+    output right_neighbor_data_out: FederatedData;
+    input left_neighbor_data_in: FederatedData;
+    input right_neighbor_data_in: FederatedData;
 
     reaction (failover.leader) {=
-        printf("Fed %i Leader: %d\n", self->my_id, failover.leader->value);
-        self->leader = lf_get(failover.leader);
+        //printf("Fed %i Leader: %d\n", self->my_id, failover.leader->value);
+        self->leader = failover.leader->value;
     =}
 
-    reaction (sensor.sensor_value) -> forwarder.self_data_in {=
-
+    reaction (veml7700.sensor_value) -> forwarder.self_data_in {=
+        FederatedData data;
+        data.source = self->my_id;
+        data.value = veml7700.sensor_value->value;
+        lf_set(forwarder.self_data_in, data);
     =}
 
-    reaction (forwarder.self_data_out) -> gpio_center_0.set, gpio_center_1.set, gpio_center_2.set {=
+
+    reaction (controller.led_0, controller.led_1, controller.led_2) -> gpio_center_0.set, gpio_center_1.set, gpio_center_2.set {=
         if (self->leader) {
-            //
+            lf_set(gpio_center_0.set, controller.led_0->value);
+            lf_set(gpio_center_1.set, controller.led_1->value);
+            lf_set(gpio_center_2.set, controller.led_2->value);
         }
     =}
 
     reaction(t) -> gpio_status.toggle {=
         lf_set(gpio_status.toggle, 0);
     =}
+
+    # powering the 3 status leds
+    failover.leader -> gpio_leader.set;
+    failover.left_connected -> gpio_left.set;
+    failover.right_connected -> gpio_right.set;
+    
+    # forwarding reactor
+    failover.forwarding_information -> forwarder.forwarding_information_in;
+    forwarder.self_data_out -> controller.sensor_values_in;
+
+    
+    //TOOD: uncomment me for federated
+    left_neighbor_data_in -> forwarder.left_neighbor_data_in;
+    right_neighbor_data_in -> forwarder.right_neighbor_data_in;
+    forwarder.left_neighbor_data_out -> left_neighbor_data_out;
+    forwarder.right_neighbor_data_out -> right_neighbor_data_out;
 
     # connecting failover reactor to neighbors
     failover.left_neighbor_out -> left_neighbor_out;
     failover.right_neighbor_out -> right_neighbor_out;
     left_neighbor_in -> failover.left_neighbor_in;
     right_neighbor_in -> failover.right_neighbor_in;
-
-    # powering the 3 status leds
-    failover.leader -> gpio_leader.set;
-    failover.left_connected -> gpio_left.set;
-    failover.right_connected -> gpio_right.set;
-    
-    # forwarding reactor
-    failover.forwarding_information -> forwarder.forwarding_information;
-    left_neighbor_data_in -> forwarder.left_neighbor_data_in;
-    right_neighbor_data_in -> forwarder.right_neighbor_data_in;
-    forwarder.left_neighbor_data_out -> left_neighbor_data_out;
-    forwarder.right_neighbor_data_out -> right_neighbor_data_out;
-
-}*/
-
-main reactor RedundantNode {
-    failover = new Failover(my_id = 0, left = 1, right = 2);
-    forwarder = new Forwarder();
-    sensor = new Veml7700(rate=250msec);
-
-    gpio_left = new GpioPin(pin = 20);
-    gpio_leader = new GpioPin(pin = 19);
-    gpio_right = new GpioPin(pin = 18);
-  
-    gpio_center_0 = new GpioPin(pin = 10);
-    gpio_center_1 = new GpioPin(pin = 11);
-    gpio_center_2 = new GpioPin(pin = 12);
-  
-    gpio_status = new GpioPin(pin = 25);
-
-    timer t(1sec, 1sec);
-
-    state leader: bool = false;
-    /*
-    input left_neighbor_in: NeighborInformation;
-    input right_neighbor_in: NeighborInformation;
-    output left_neighbor_out: NeighborInformation;
-    output right_neighbor_out: NeighborInformation;
-
-    output left_neighbor_data_out: FedData;
-    output right_neighbor_data_out: FedData;
-    input left_neighbor_data_in: FedData;
-    input right_neighbor_data_in: FedData;
-    */
-
-    reaction (failover.leader) {=
-        //printf("Fed %i Leader: %d\n", self->my_id, failover.leader->value);
-        self->leader = lf_get(failover.leader);
-    =}
-
-    reaction (sensor.sensor_value) -> forwarder.self_data_in {=
-
-    =}
-
-    reaction (forwarder.self_data_out) -> gpio_center_0.set, gpio_center_1.set, gpio_center_2.set {=
-        if (self->leader) {
-            //
-        }
-    =}
-
-    reaction(t) -> gpio_status.toggle {=
-        lf_set(gpio_status.toggle, 0);
-    =}
-
-    # connecting failover reactor to neighbors
-    /*failover.left_neighbor_out -> left_neighbor_out;
-    failover.right_neighbor_out -> right_neighbor_out;
-    left_neighbor_in -> failover.left_neighbor_in;
-    right_neighbor_in -> failover.right_neighbor_in;*/
-
-    # powering the 3 status leds
-    failover.leader -> gpio_leader.set;
-    failover.left_connected -> gpio_left.set;
-    failover.right_connected -> gpio_right.set;
-    
-    # forwarding reactor
-    failover.forwarding_information -> forwarder.forwarding_information;
-    /*left_neighbor_data_in -> forwarder.left_neighbor_data_in;
-    right_neighbor_data_in -> forwarder.right_neighbor_data_in;
-    forwarder.left_neighbor_data_out -> left_neighbor_data_out;
-    forwarder.right_neighbor_data_out -> right_neighbor_data_out;*/
-
 }

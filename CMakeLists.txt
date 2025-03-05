@@ -4,7 +4,7 @@ project(reactor-uc-pico)
 set(PLATFORM "PICO" CACHE STRING "Platform to target")
 
 if (NOT DEFINED LF_MAIN)
-  set(LF_MAIN "Blink")
+  set(LF_MAIN "FlightController")
 endif()
 
 if (NOT DEFINED LOG_LEVEL)

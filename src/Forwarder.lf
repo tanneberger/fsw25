@@ -3,35 +3,64 @@ target uC;
 
 preamble {=
     #include "common.h"
-    typedef struct FedData FedData;
-
-    struct FedData {
-        int status;
-    };
-
-
 =}
 
 reactor Forwarder {
-    input forwarding_information: ForwardInformation;
+    input forwarding_information_in: ForwardInformation;
 
-    input left_neighbor_data_in: int;
-    input right_neighbor_data_in: int;
-    input self_data_in: int;
+    input left_neighbor_data_in: FederatedData;
+    input right_neighbor_data_in: FederatedData;
+    input self_data_in: FederatedData;
 
-    output left_neighbor_data_out: int;
-    output right_neighbor_data_out: int;
-    output self_data_out: int;
+    output left_neighbor_data_out: FederatedData;
+    output right_neighbor_data_out: FederatedData;
+    output self_data_out: FederatedData;
+
+    state forwarding_information: ForwardInformation;
+
+    reaction(forwarding_information_in) {=
+        self->forwarding_information = forwarding_information_in->value;
+    =}
 
     reaction (left_neighbor_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out {=
-
+        switch (self->forwarding_information) {
+            case ForwardLeft:
+                lf_set(left_neighbor_data_out, left_neighbor_data_in->value);
+                break;
+            case ForwardRight:
+                lf_set(right_neighbor_data_out, left_neighbor_data_in->value);
+                break;
+            case ForwardSelf:
+                lf_set(self_data_out, left_neighbor_data_in->value);
+                break;
+        }
     =}
 
     reaction (right_neighbor_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out {=
-
+        switch (self->forwarding_information) {
+            case ForwardLeft:
+                lf_set(left_neighbor_data_out, right_neighbor_data_in->value);
+                break;
+            case ForwardRight:
+                lf_set(right_neighbor_data_out, right_neighbor_data_in->value);
+                break;
+            case ForwardSelf:
+                lf_set(self_data_out, right_neighbor_data_in->value);
+                break;
+        }
     =}
 
     reaction (self_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out  {=
-
+        switch (self->forwarding_information) {
+            case ForwardLeft:
+                lf_set(left_neighbor_data_out, self_data_in->value);
+                break;
+            case ForwardRight:
+                lf_set(right_neighbor_data_out, self_data_in->value);
+                break;
+            case ForwardSelf:
+                lf_set(self_data_out, self_data_in->value);
+                break;
+        }
     =}
 }

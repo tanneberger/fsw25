@@ -1,0 +1,49 @@
+target uC;
+
+preamble {=
+    #include "common.h"
+=}
+
+reactor LedController(rate: interval_t = 250msec) {
+    input sensor_values_in: FederatedData;
+
+    output led_0: bool;
+    output led_1: bool;
+    output led_2: bool;
+
+    state available: bool[3];
+    state values: int[3];
+
+    timer t(1sec, rate);
+
+    reaction (sensor_values_in) {=
+        printf("received value from source: %i value %i", sensor_values_in->value.source, sensor_values_in->value.value);
+        self->available[sensor_values_in->value.source] = true;
+        self->values[sensor_values_in->value.source] = sensor_values_in->value.value;
+    =} 
+
+    reaction (t) -> led_0, led_1, led_2 {=
+        float avg = 0;
+        int count = 0;
+
+        for (int i = 0; i < 3; i++) {
+            if (self->available[i]) {
+                count++;
+                avg += (float)self->values[i];
+                self->available[i] = false;
+            } 
+        }
+
+        if (count == 0) {
+            return;
+        }
+
+        avg = avg / count;
+
+        printf("averaged sensor reading %f\n", avg);
+
+        lf_set(led_0, avg > 150.0);
+        lf_set(led_1, avg > 300.0);
+        lf_set(led_2, avg > 500.0);
+    =}
+}

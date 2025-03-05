@@ -26,6 +26,7 @@ reactor GpioPin(pin: int = 8) {
         if (set->super.super.is_present) {
             self->high = set->value;
         }
+        //printf("pin: %i = %i", self->pin, self->high);
         //gpio_put(self->pin, self->high);
     =}
 }

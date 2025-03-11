@@ -1,50 +1,81 @@
 target uC {
     platform: Native,
-    logging: debug,
-    build-type: debug
+    logging: INFO,
+    clock-sync: off
+    //build-type: debug
 }
 
 import RedundantNode from "./RedundantNode.lf"
 
 federated reactor {
     //@interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    //@interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_tcp(name="uart1", address="127.0.0.1")
+    @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    //@interface_tcp(name="uart0", address="127.0.0.1")
+    //@interface_tcp(name="uart1", address="127.0.0.1")
+    @clock_sync(grandmaster=true, period=1000000000, max_adj=512000, kp=0.5, ki=0.1)
     node_0 = new RedundantNode(my_id = 0, left = 1, right = 2);
     
     //@interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    //@interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_tcp(name="uart0", address="127.0.0.1")
-    node_1 = new RedundantNode(my_id = 1, left = 2, right = 1);
+    @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    //@interface_tcp(name="uart0", address="127.0.0.1")
+    //@interface_tcp(name="uart1", address="127.0.0.1")
+    @clock_sync(grandmaster=false, period=1000000000, max_adj=512000, kp=0.5, ki=0.1)
+    node_1 = new RedundantNode(my_id = 1, left = 2, right = 0);
+    
     //@interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
     //@interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    //@interface_tcp(name="uart0", address="127.0.0.1")
+    //@interface_tcp(name="uart1", address="127.0.0.1")
+    //@clock_sync(grandmaster=false, period=1000000000, max_adj=512000, kp=0.5, ki=0.1)
     //node_2 = new RedundantNode(my_id = 2, left = 0, right = 1);
     
-    //@link(left="if1", right="if1", server_side="right", server_port=1042)
     @link(left="uart1", right="uart0")
-    node_0.left_neighbor_out -> node_1.right_neighbor_in after 10msec;
-    //@link(left="uart1", right="uart0")
-    //node_0.right_neighbor_out -> node_2.left_neighbor_in after 10msec;
-
-    @link(left="uart1", right="uart0")
-    node_0.left_neighbor_data_out -> node_1.right_neighbor_data_in after 10msec;
-    //node_0.right_neighbor_data_out -> node_2.left_neighbor_data_in after 10msec;
+    @buffer(10)
+    node_0.left_neighbor_out -> node_1.right_neighbor_in after 50msec;
 
     //@link(left="uart0", right="uart1")
-    //node_1.left_neighbor_out -> node_2.right_neighbor_in after 10msec;
-    @link(left="uart0", right="uart1")
-    node_1.right_neighbor_out -> node_0.left_neighbor_in after 10msec;
+    //@buffer(10)
+    //node_0.right_neighbor_out -> node_2.left_neighbor_in after 50msec;
 
-    //node_1.left_neighbor_data_out -> node_2.right_neighbor_data_in after 10msec;
-    @link(left="uart0", right="uart1")
-    node_1.right_neighbor_data_out -> node_0.left_neighbor_data_in after 10msec;
-
+    @link(left="uart1", right="uart0")
+    @buffer(10)
+    node_0.left_neighbor_data_out -> node_1.right_neighbor_data_in after 50msec;
+    
     //@link(left="uart0", right="uart1")
-    //node_2.left_neighbor_out -> node_0.right_neighbor_in after 10msec;
-    //@link(left="uart1", right="uart0")
-    //node_2.right_neighbor_out -> node_1.left_neighbor_in after 10msec;
+    //@buffer(10)
+    //node_0.right_neighbor_data_out -> node_2.left_neighbor_data_in after 50msec;
 
-    //node_2.left_neighbor_data_out -> node_0.right_neighbor_data_in after 10msec;
-    //node_2.right_neighbor_data_out -> node_1.left_neighbor_data_in after 10msec;
+    //@link(left="uart1", right="uart0")
+    //@buffer(10)
+    //node_1.left_neighbor_out -> node_2.right_neighbor_in after 50msec;
+
+    @link(left="uart0", right="uart1")
+    @buffer(10)
+    node_1.right_neighbor_out -> node_0.left_neighbor_in after 50msec;
+
+    //@link(left="uart1", right="uart0")
+    //@buffer(10)
+    //node_1.left_neighbor_data_out -> node_2.right_neighbor_data_in after 50msec;
+    
+    @link(left="uart0", right="uart1")
+    @buffer(10)
+    node_1.right_neighbor_data_out -> node_0.left_neighbor_data_in after 50msec;
+
+    //@link(left="uart1", right="uart0")
+    //@buffer(10)
+    //node_2.left_neighbor_out -> node_0.right_neighbor_in after 50msec;
+    
+    //@link(left="uart0", right="uart1")
+    //@buffer(10)
+    //node_2.right_neighbor_out -> node_1.left_neighbor_in after 50msec;
+
+    //@link(left="uart1", right="uart0")
+    //@buffer(10)
+    //node_2.left_neighbor_data_out -> node_0.right_neighbor_data_in after 50msec;
+    
+    //@link(left="uart0", right="uart1")
+    //@buffer(10)
+    //node_2.right_neighbor_data_out -> node_1.left_neighbor_data_in after 50msec;
+    
     
 }

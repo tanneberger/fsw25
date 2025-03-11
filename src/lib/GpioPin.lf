@@ -1,7 +1,7 @@
 target uC
 
 preamble {=
-    //#include "hardware/gpio.h"
+    #include "hardware/gpio.h"
 =}
 
 reactor GpioPin(pin: int = 8) {
@@ -13,13 +13,13 @@ reactor GpioPin(pin: int = 8) {
     reaction (startup) {=
         self->high = false;
 
-        //gpio_init(self->pin);
-        //gpio_set_dir(self->pin, GPIO_OUT);
+        gpio_init(self->pin);
+        gpio_set_dir(self->pin, GPIO_OUT);
     =}
 
     reaction (toggle) {=
         self->high = !self->high;
-        //gpio_put(self->pin, self->high);
+        gpio_put(self->pin, self->high);
     =}
 
     reaction (set) {=
@@ -27,6 +27,6 @@ reactor GpioPin(pin: int = 8) {
             self->high = set->value;
         }
         //printf("pin: %i = %i", self->pin, self->high);
-        //gpio_put(self->pin, self->high);
+        gpio_put(self->pin, self->high);
     =}
 }

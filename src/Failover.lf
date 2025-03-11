@@ -3,7 +3,7 @@ target uC
 preamble {=
     #include "common.h"
 
-    #define ASSUME_DEAD MSEC(1500)
+    #define ASSUME_DEAD MSEC(500)
     typedef struct NeighborInformation NeighborInformation;
 
     struct NeighborInformation {
@@ -30,7 +30,7 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1) {
     state federate_ids: int[3]; //self, left, right
     state last_received: instant_t[2]; // left, right
 
-    timer ping_neighbors(1sec, 250msec);
+    timer ping_neighbors(100msec, 500msec);
     timer perform_failover(1sec, 500msec);
 
     reaction (startup) {=
@@ -47,76 +47,92 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1) {
 
     reaction (ping_neighbors) -> left_neighbor_out, right_neighbor_out {=
         instant_t current_time = env->get_physical_time(env);
-        int self_id = self->federate_ids[0];
 
-        int left_neighbor_id = self->federate_ids[1];
         if (current_time - self->last_received[0] > ASSUME_DEAD) {
-            self->visibility_table[self_id * 3 + left_neighbor_id] = false; 
+            self->visibility_table[self->my_id * 3 + self->left] = false; 
         } else {
-            self->visibility_table[self_id * 3 + left_neighbor_id] = true;
+            self->visibility_table[self->my_id * 3 + self->left] = true;
         }
 
-        int right_neighbor_id = self->federate_ids[2];
         if (current_time - self->last_received[1] > ASSUME_DEAD) {
-            self->visibility_table[self_id * 3 + right_neighbor_id] = false; 
+            self->visibility_table[self->my_id * 3 + self->right] = false; 
         } else {
-            self->visibility_table[self_id * 3 + right_neighbor_id] = true;
+            self->visibility_table[self->my_id * 3 + self->right] = true;
         }
+
+        self->visibility_table[self->my_id * 3 + self->my_id] = true;
 
         NeighborInformation neightbor_information;
-        memcpy(neightbor_information.federates, &self->visibility_table[self_id], 3 * sizeof(bool)); 
+        memcpy(neightbor_information.federates, 
+            &self->visibility_table[self->my_id * 3], 3 * sizeof(bool)); 
 
         lf_set(left_neighbor_out, neightbor_information);
         lf_set(right_neighbor_out, neightbor_information);
     =}
 
     reaction (left_neighbor_in) {=
-        int left_neighbor_id = self->federate_ids[1];
         self->last_received[0] = env->get_physical_time(env);
 
-        self->visibility_table[left_neighbor_id * 3] = left_neighbor_in->value.federates[0];
-        self->visibility_table[left_neighbor_id * 3 + 1] = left_neighbor_in->value.federates[1];
-        self->visibility_table[left_neighbor_id * 3 + 2] = left_neighbor_in->value.federates[2];
+        self->visibility_table[self->left * 3 + 0] = left_neighbor_in->value.federates[0];
+        self->visibility_table[self->left * 3 + 1] = left_neighbor_in->value.federates[1];
+        self->visibility_table[self->left * 3 + 2] = left_neighbor_in->value.federates[2];
     =}
 
     reaction (right_neighbor_in) {=
-        int right_neighbor_id = self->federate_ids[2];
         self->last_received[1] = env->get_physical_time(env);
 
-        self->visibility_table[right_neighbor_id * 3] = right_neighbor_in->value.federates[0];
-        self->visibility_table[right_neighbor_id * 3 + 1] = right_neighbor_in->value.federates[1];
-        self->visibility_table[right_neighbor_id * 3 + 2] = right_neighbor_in->value.federates[2];
+        self->visibility_table[self->right * 3 + 0] = right_neighbor_in->value.federates[0];
+        self->visibility_table[self->right * 3 + 1] = right_neighbor_in->value.federates[1];
+        self->visibility_table[self->right * 3 + 2] = right_neighbor_in->value.federates[2];
     =}
 
     reaction (perform_failover) -> leader, left_connected, right_connected, forwarding_information {=
-        bool offline[3];
+        bool online[3];
 
-        offline[0] = (!self->visibility_table[1 * 3 + 0]) && (!self->visibility_table[2 * 3 + 0]);
-        offline[1] = (!self->visibility_table[0 * 3 + 1]) && (!self->visibility_table[2 * 3 + 1]);
-        offline[2] = (!self->visibility_table[0 * 3 + 2]) && (!self->visibility_table[1 * 3 + 2]);
+        //TODO: uncomment when working with 3 federates 
+        //online[0] = self->visibility_table[1 * 3 + 0] && self->visibility_table[2 * 3 + 0];
+        //online[1] = self->visibility_table[0 * 3 + 1] && self->visibility_table[2 * 3 + 1];
+        //online[2] = self->visibility_table[0 * 3 + 2] && self->visibility_table[1 * 3 + 2];
 
-        printf("Fed: %i %i %i %i\n", self->my_id, offline[0], offline[1], offline[2]);
+        online[0] = self->visibility_table[1 * 3 + 0];
+        online[1] = self->visibility_table[0 * 3 + 1];
+        online[2] = false;
+        online[self->my_id] = true;
 
-        size_t self_id = self->federate_ids[0];
-        bool is_left_connected = self->visibility_table[self_id * 3 + self->federate_ids[1]];
-        bool is_right_connected = self->visibility_table[self_id * 3 + self->federate_ids[2]];
+        printf("Federate: %i = %i Left-Side: %i = %i Right-Side: %i = %i\n", self->my_id, online[self->my_id], self->left, online[self->left], self->right, online[self->right]);
+
+        bool is_left_connected = self->visibility_table[self->my_id * 3 + self->left];
+        bool is_right_connected = self->visibility_table[self->my_id * 3 + self->right];
 
         lf_set(left_connected, is_left_connected);
         lf_set(left_connected, is_right_connected);
 
-        if (self->federate_ids[0] == 0) {
+        int leader_index = -1;
+
+        if (!online[0] && online[1] && online[2]) {
+            leader_index = 1;
+        } else {
+            leader_index = 0;
+        }
+
+        printf("MyID: %i Leader Calculated: %i\n", self->my_id, leader_index);
+
+        if (leader_index == self->my_id) {
             lf_set(leader, true);
             lf_set(forwarding_information, ForwardSelf);
             return;
+        } else if (leader_index == self->left) {
+            if (left_connected) {
+                lf_set(forwarding_information, ForwardLeft);
+            } else {
+                lf_set(forwarding_information, ForwardRight);
+            }
+        } else if (leader_index == self->right) {
+            if (right_connected) {
+                lf_set(forwarding_information, ForwardRight);
+            } else {
+                lf_set(forwarding_information, ForwardLeft);
+            }
         }
-
-        if (self->federate_ids[0] == 1 && offline[0] && !offline[2]) {
-            lf_set(leader, true);
-            lf_set(forwarding_information, ForwardSelf);
-            return;
-        }
-
-        //TODO: lf_set(forwarding_information)
-        lf_set(leader, false);
     =}
 }

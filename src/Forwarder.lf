@@ -3,6 +3,20 @@ target uC;
 
 preamble {=
     #include "common.h"
+
+    /*#ifndef FORWARD_ENUM
+    #define FORWARD_ENUM 
+    const char* print_forward_enum(ForwardInformation forward) {
+        switch (forward) {
+            case ForwardSelf: 
+                return "self";
+            case ForwardLeft: 
+                return "left";
+            case ForwardRight:
+                return "right";
+        }
+    }
+    #endif*/
 =}
 
 reactor Forwarder {
@@ -19,6 +33,20 @@ reactor Forwarder {
     state forwarding_information: ForwardInformation;
 
     reaction(forwarding_information_in) {=
+
+        const char* direction = NULL;
+        switch (forwarding_information_in->value) {
+            case ForwardSelf: 
+                direction = "self";
+                break;
+            case ForwardLeft: 
+                direction = "left";
+                break;
+            case ForwardRight:
+                direction = "right";
+                break;
+        }
+        printf("Forwarder Received: %s\n", direction);
         self->forwarding_information = forwarding_information_in->value;
     =}
 
@@ -36,7 +64,7 @@ reactor Forwarder {
         }
     =}
 
-    reaction (right_neighbor_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out {=
+    reaction (right_neighbor_data_in) -> left_neighbor_data_out, right_neighbor_data_out, self_data_out {= 
         switch (self->forwarding_information) {
             case ForwardLeft:
                 lf_set(left_neighbor_data_out, right_neighbor_data_in->value);

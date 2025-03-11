@@ -14,10 +14,10 @@ reactor LedController(rate: interval_t = 250msec) {
     state available: bool[3];
     state values: int[3];
 
-    timer t(1sec, rate);
+    timer t(250msec, rate);
 
     reaction (sensor_values_in) {=
-        printf("received value from source: %i value %i", sensor_values_in->value.source, sensor_values_in->value.value);
+        //printf("received value from source: %i value %i\n", sensor_values_in->value.source, sensor_values_in->value.value);
         self->available[sensor_values_in->value.source] = true;
         self->values[sensor_values_in->value.source] = sensor_values_in->value.value;
     =} 
@@ -40,7 +40,7 @@ reactor LedController(rate: interval_t = 250msec) {
 
         avg = avg / count;
 
-        printf("averaged sensor reading %f\n", avg);
+        //printf("averaged sensor reading %f\n", avg);
 
         lf_set(led_0, avg > 150.0);
         lf_set(led_1, avg > 300.0);

@@ -13,7 +13,7 @@ preamble {=
 reactor RedundantNode(my_id: int = 0, left: int = 1, right: int = 2) {
     failover = new Failover(my_id = my_id, left = left, right = right);
     forwarder = new Forwarder();
-    veml7700 = new Veml7700(rate=250msec);
+    veml7700 = new Veml7700(rate=500msec);
     controller = new LedController(rate = 500msec);
 
     gpio_left = new GpioPin(pin = 20);

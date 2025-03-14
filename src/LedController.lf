@@ -38,9 +38,9 @@ reactor LedController(rate: interval_t = 250msec) {
             return;
         }
 
-        avg = avg / count;
+        avg = avg / (float)count;
 
-        //printf("averaged sensor reading %f\n", avg);
+        printf("average sensor reading %f from %d\n", avg, count);
 
         lf_set(led_0, avg > 150.0);
         lf_set(led_1, avg > 300.0);

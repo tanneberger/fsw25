@@ -53,7 +53,7 @@ reactor Veml7700(rate: interval_t = 250msec) {
         uint8_t reg = VEML7700_REG;
         i2c_write_blocking(i2c_default, VEML7700_ADDR, &reg, 1, true);
         i2c_read_timeout_us(i2c_default, VEML7700_ADDR, &read_sensor_value, 2, false, VEML7700_TIMEOUT);
-        printf("reading value %i\n", read_sensor_value);
+        //printf("reading value %i\n", read_sensor_value);
         lf_set(sensor_value, (int)read_sensor_value);
 
         //lf_set(sensor_value, (int) (rand() % 600));

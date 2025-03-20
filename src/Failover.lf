@@ -12,7 +12,7 @@ preamble {=
 
 =}
 
-reactor Failover(my_id: int = 0, left: int = 1, right: int = 1) {
+reactor Failover(my_id: int = 0, left: int = 1, right: int = 1, offset: interval_t = 100msec) {
     // controll information
     output leader: bool;
     output left_connected: bool;
@@ -20,17 +20,17 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1) {
     output forwarding_information: ForwardInformation;
 
     // neighbor controll
-    input left_neighbor_in: NeighborInformation;
-    input right_neighbor_in: NeighborInformation;
-    output left_neighbor_out: NeighborInformation;
-    output right_neighbor_out: NeighborInformation;
+    input left_neighbor_ctrl_in: NeighborInformation;
+    input right_neighbor_ctrl_in: NeighborInformation;
+    output left_neighbor_ctrl_out: NeighborInformation;
+    output right_neighbor_ctrl_out: NeighborInformation;
     
     //state my_id: int = my_id;
     state visibility_table: bool[9];
     state federate_ids: int[3]; //self, left, right
     state last_received: instant_t[2]; // left, right
 
-    timer ping_neighbors(100msec, 500msec);
+    timer ping_neighbors(offset, 500msec);
     timer perform_failover(1sec, 500msec);
 
     reaction (startup) {=
@@ -45,7 +45,7 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1) {
         self->last_received[1] = env->get_physical_time(env);
     =}
 
-    reaction (ping_neighbors) -> left_neighbor_out, right_neighbor_out {=
+    reaction (ping_neighbors) -> left_neighbor_ctrl_out, right_neighbor_ctrl_out {=
         instant_t current_time = env->get_physical_time(env);
 
         if (current_time - self->last_received[0] > ASSUME_DEAD) {
@@ -66,26 +66,26 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1) {
         memcpy(neightbor_information.federates, 
             &self->visibility_table[self->my_id * 3], 3 * sizeof(bool)); 
 
-        lf_set(left_neighbor_out, neightbor_information);
-        lf_set(right_neighbor_out, neightbor_information);
+        lf_set(left_neighbor_ctrl_out, neightbor_information);
+        lf_set(right_neighbor_ctrl_out, neightbor_information);
     =}
 
-    reaction (left_neighbor_in) {=
+    reaction (left_neighbor_ctrl_in) {=
         //printf("MyID: %d message from left (%d)\n", self->my_id, self->left);
         self->last_received[0] = env->get_physical_time(env);
 
-        self->visibility_table[self->left * 3 + 0] = left_neighbor_in->value.federates[0];
-        self->visibility_table[self->left * 3 + 1] = left_neighbor_in->value.federates[1];
-        self->visibility_table[self->left * 3 + 2] = left_neighbor_in->value.federates[2];
+        self->visibility_table[self->left * 3 + 0] = left_neighbor_ctrl_in->value.federates[0];
+        self->visibility_table[self->left * 3 + 1] = left_neighbor_ctrl_in->value.federates[1];
+        self->visibility_table[self->left * 3 + 2] = left_neighbor_ctrl_in->value.federates[2];
     =}
 
-    reaction (right_neighbor_in) {=
+    reaction (right_neighbor_ctrl_in) {=
         //printf("MyID: %d message from right (%d)\n", self->my_id, self->right);
         self->last_received[1] = env->get_physical_time(env);
 
-        self->visibility_table[self->right * 3 + 0] = right_neighbor_in->value.federates[0];
-        self->visibility_table[self->right * 3 + 1] = right_neighbor_in->value.federates[1];
-        self->visibility_table[self->right * 3 + 2] = right_neighbor_in->value.federates[2];
+        self->visibility_table[self->right * 3 + 0] = right_neighbor_ctrl_in->value.federates[0];
+        self->visibility_table[self->right * 3 + 1] = right_neighbor_ctrl_in->value.federates[1];
+        self->visibility_table[self->right * 3 + 2] = right_neighbor_ctrl_in->value.federates[2];
     =}
 
     reaction (perform_failover) -> leader, left_connected, right_connected, forwarding_information {=

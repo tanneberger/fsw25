@@ -100,6 +100,7 @@ pkgs.mkShell {
     buildPackages.binutils
     buildPackages.libcCross
     newlib-nano
+    openocd-rp2040
   ];
 
   shellHook = ''

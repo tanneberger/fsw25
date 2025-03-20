@@ -32,8 +32,11 @@ reactor Forwarder {
 
     state forwarding_information: ForwardInformation;
 
-    reaction(forwarding_information_in) {=
+    reaction(startup) {=
+        self->forwarding_information = ForwardSelf;
+    =}
 
+    reaction(forwarding_information_in) {=
         const char* direction = NULL;
         switch (forwarding_information_in->value) {
             case ForwardSelf: 

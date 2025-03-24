@@ -7,27 +7,27 @@ target uC {
 
 import RedundantNode from "./RedundantNode.lf"
 
-federated reactor {
-    @interface_uart(name="uart0", uart_device=0, baud_rate=38400, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_uart(name="uart1", uart_device=1, baud_rate=38400, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+federated reactor { #38400
+    @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
     //@interface_tcp(name="uart0", address="127.0.0.1")
     //@interface_tcp(name="uart1", address="127.0.0.1")
-    @clock_sync(grandmaster=true, period=4000000000, max_adj=512000, kp=0.5, ki=0.1)
-    node_0 = new RedundantNode(my_id = 0, left = 2, right = 1, offset = 50msec);
+    @clock_sync(grandmaster=true, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
+    node_0 = new RedundantNode(my_id = 0, left = 2, right = 1, offset = 10msec);
     
-    @interface_uart(name="uart0", uart_device=0, baud_rate=38400, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_uart(name="uart1", uart_device=1, baud_rate=38400, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
     //@interface_tcp(name="uart0", address="127.0.0.1")
     //@interface_tcp(name="uart1", address="127.0.0.1")
-    @clock_sync(grandmaster=false, period=4000000000, max_adj=512000, kp=0.5, ki=0.1)
-    node_1 = new RedundantNode(my_id = 1, left = 0, right = 2, offset = 100msec);
+    @clock_sync(grandmaster=false, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
+    node_1 = new RedundantNode(my_id = 1, left = 0, right = 2, offset = 20msec);
     
-    @interface_uart(name="uart0", uart_device=0, baud_rate=38400, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_uart(name="uart1", uart_device=1, baud_rate=38400, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
     //@interface_tcp(name="uart0", address="127.0.0.1")
     //@interface_tcp(name="uart1", address="127.0.0.1")
-    @clock_sync(grandmaster=false, period=4000000000, max_adj=512000, kp=0.5, ki=0.1)
-    node_2 = new RedundantNode(my_id = 2, left = 1, right = 0, offset = 150msec);
+    @clock_sync(grandmaster=false, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
+    node_2 = new RedundantNode(my_id = 2, left = 1, right = 0, offset = 30msec);
     
     @link(left="uart0", right="uart1")
     @buffer(10)

@@ -71,7 +71,6 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1, offset: interval
     =}
 
     reaction (left_neighbor_ctrl_in) {=
-        //printf("MyID: %d message from left (%d)\n", self->my_id, self->left);
         self->last_received[0] = env->get_physical_time(env);
 
         self->visibility_table[self->left * 3 + 0] = left_neighbor_ctrl_in->value.federates[0];
@@ -80,7 +79,6 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1, offset: interval
     =}
 
     reaction (right_neighbor_ctrl_in) {=
-        //printf("MyID: %d message from right (%d)\n", self->my_id, self->right);
         self->last_received[1] = env->get_physical_time(env);
 
         self->visibility_table[self->right * 3 + 0] = right_neighbor_ctrl_in->value.federates[0];
@@ -91,14 +89,10 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1, offset: interval
     reaction (perform_failover) -> leader, left_connected, right_connected, forwarding_information {=
         bool online[3];
 
-        //TODO: uncomment when working with 3 federates 
         online[0] = self->visibility_table[1 * 3 + 0] || self->visibility_table[2 * 3 + 0];
         online[1] = self->visibility_table[0 * 3 + 1] || self->visibility_table[2 * 3 + 1];
         online[2] = self->visibility_table[0 * 3 + 2] || self->visibility_table[1 * 3 + 2];
 
-        //online[0] = self->visibility_table[1 * 3 + 0];
-        //online[1] = self->visibility_table[0 * 3 + 1];
-        //online[2] = false;
         online[self->my_id] = true;
 
         printf("Federate: %i = %i Left-Side: %i = %i Right-Side: %i = %i\n", self->my_id, online[self->my_id], self->left, online[self->left], self->right, online[self->right]);
@@ -122,19 +116,29 @@ reactor Failover(my_id: int = 0, left: int = 1, right: int = 1, offset: interval
         if (leader_index == self->my_id) {
             lf_set(leader, true);
             lf_set(forwarding_information, ForwardSelf);
-            return;
         } else if (leader_index == self->left) {
+            lf_set(leader, false);
             if (left_connected) {
                 lf_set(forwarding_information, ForwardLeft);
             } else {
                 lf_set(forwarding_information, ForwardRight);
             }
         } else if (leader_index == self->right) {
+            lf_set(leader, false);
             if (right_connected) {
                 lf_set(forwarding_information, ForwardRight);
             } else {
                 lf_set(forwarding_information, ForwardLeft);
             }
         }
+
+        // resetting the visibility table
+        self->visibility_table[self->right * 3 + 0] = false;
+        self->visibility_table[self->right * 3 + 1] = false;
+        self->visibility_table[self->right * 3 + 2] = false;
+
+        self->visibility_table[self->left * 3 + 0] = false;
+        self->visibility_table[self->left * 3 + 1] = false;
+        self->visibility_table[self->left * 3 + 2] = false;
     =}
 }

@@ -2,7 +2,7 @@ target uC
 
 private preamble {=
     #include "hardware/gpio.h"
-    #include <stdbool.h>
+    //#include <stdbool.h>
 =}
 
 reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
@@ -18,7 +18,7 @@ reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
             gpio_set_dir(self->pin, GPIO_OUT);
         }
 
-        gpio_put(self->pin, self->high); 
+        gpio_put(self->pin, self->high);
 =}
 
     reaction (toggle) {=

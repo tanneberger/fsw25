@@ -3,7 +3,7 @@ target uC
 preamble {=
     #include "common.h"
 
-    #define ASSUME_DEAD MSEC(500)
+    #define ASSUME_DEAD MSEC(750)
     typedef struct NeighborInformation NeighborInformation;
 
     struct NeighborInformation {

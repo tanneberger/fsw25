@@ -43,18 +43,20 @@ target_link_libraries(${LF_MAIN_TARGET} PUBLIC pico_stdlib pico_sync hardware_i2
 target_include_directories(${LF_MAIN_TARGET} PUBLIC ./src)
 pico_enable_stdio_usb(${LF_MAIN_TARGET} 1)
 
-if(FEDERATE MATCHES "node_0")
-  #target_compile_definitions(${LF_MAIN_TARGET} PRIVATE
-  #  PICO_DEFAULT_UART=0
-  #    PICO_DEFAULT_UART_TX_PIN=0
-  #    PICO_DEFAULT_UART_RX_PIN=1)
-  #
-  #pico_enable_stdio_uart(${LF_MAIN_TARGET} 1)
-else()
-  #target_compile_definitions(${LF_MAIN_TARGET} PRIVATE
-  #  PICO_DEFAULT_UART=1
-  #  PICO_DEFAULT_UART_TX_PIN=8
-  #  PICO_DEFAULT_UART_RX_PIN=9)
-  #pico_enable_stdio_uart(${LF_MAIN_TARGET} 1)
+if(FEDERATE MATCHES "node_2")
+  target_compile_definitions(${LF_MAIN_TARGET} PRIVATE
+    PICO_DEFAULT_UART=0
+      PICO_DEFAULT_UART_TX_PIN=0
+      PICO_DEFAULT_UART_RX_PIN=1)
+  
+  pico_enable_stdio_uart(${LF_MAIN_TARGET} 1)
+endif()
+
+if(FEDERATE MATCHES "node_1")
+  target_compile_definitions(${LF_MAIN_TARGET} PRIVATE
+    PICO_DEFAULT_UART=1
+    PICO_DEFAULT_UART_TX_PIN=8
+    PICO_DEFAULT_UART_RX_PIN=9)
+  pico_enable_stdio_uart(${LF_MAIN_TARGET} 1)
 endif()
 

@@ -1,7 +1,7 @@
 target uC
 
 preamble {=
-    //#include <time.h>
+    #include <time.h>
     
     #include <stdio.h>
     #include "hardware/i2c.h"
@@ -24,7 +24,7 @@ reactor Veml7700(rate: interval_t = 250msec) {
 
     reaction (startup) {=
         //srand(time(NULL));
-        
+    
         // useful information for picotool
         bi_decl(bi_2pins_with_func(VEML7700_SDA_PIN, VEML7700_SCL_PIN, GPIO_FUNC_I2C));
         bi_decl(bi_program_description("BMP280 I2C example for the Raspberry Pi Pico"));

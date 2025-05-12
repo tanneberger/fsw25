@@ -1,8 +1,8 @@
 target uC
 
 private preamble {=
-    #include "hardware/gpio.h"
-    //#include <stdbool.h>
+    //#include "hardware/gpio.h"
+    #include <stdbool.h>
 =}
 
 reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
@@ -13,18 +13,18 @@ reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
     reaction (startup) {=
         self->high = (self->start_value == 1);
         
-        if (self->disconnect == 0) {
+        /*if (self->disconnect == 0) {
             gpio_init(self->pin);
             gpio_set_dir(self->pin, GPIO_OUT);
         }
 
-        gpio_put(self->pin, self->high);
+        gpio_put(self->pin, self->high);*/
 =}
 
     reaction (toggle) {=
         self->high = !self->high;
 
-        if (self->disconnect == 1) {
+        /*if (self->disconnect == 1) {
             if (self->high) {
                 gpio_init(self->pin);
                 gpio_set_dir(self->pin, GPIO_OUT);
@@ -33,11 +33,11 @@ reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
             }
         }
 
-        gpio_put(self->pin, self->high);
+        gpio_put(self->pin, self->high);*/
 =}
 
     reaction (set) {=
-        if (set->super.super.is_present) {
+        /*if (set->super.super.is_present) {
             self->high = set->value;
         }
 
@@ -49,6 +49,6 @@ reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
                 gpio_disable_pulls(self->pin);
             }
         }
-        gpio_put(self->pin, self->high);
+        gpio_put(self->pin, self->high);*/
     =}
 }

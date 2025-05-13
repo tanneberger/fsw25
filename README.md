@@ -8,3 +8,10 @@
     $ sudo picotool load -x build/LF_MAIN.elf
 ```
 
+
+```
+    $ cmake -Bbuild . -DLF_MAIN=FlightControllerReal -DFEDERATE=node_0
+    $ cmake --build build
+    $ sudo picotool load -x build/LF_MAIN.elf
+```
+

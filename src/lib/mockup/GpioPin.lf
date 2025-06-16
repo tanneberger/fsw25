@@ -1,0 +1,25 @@
+target uC
+
+private preamble {=
+    #include <stdbool.h>
+=}
+
+reactor GpioPin(pin: int = 8, start_value: int = 0, disconnect: int = 0) {
+    input toggle: int;
+    input set: bool;
+    state high: bool;
+
+    reaction (startup) {=
+        self->high = (self->start_value == 1);
+    =}
+
+    reaction (toggle) {=
+        self->high = !self->high;
+    =}
+
+    reaction (set) {=
+        if (set->super.super.is_present) {
+            self->high = set->value;
+        }
+    =}
+}

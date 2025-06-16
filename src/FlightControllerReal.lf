@@ -1,38 +1,38 @@
 target uC {
     platform: rp2040,
     logging: INFO,
-    clock-sync: off
+    clock-sync: on
 }
 
 import RedundantNode from "./RedundantNode.lf"
 
 federated reactor { #38400
-    @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    //@interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
     @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    //@clock_sync(grandmaster=true, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
+    @clock_sync(grandmaster=true, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
     node_0 = new RedundantNode(my_id = 0, left = 2, right = 1, offset = 10msec);
     
     @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    //@clock_sync(grandmaster=false, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
+    //@interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    @clock_sync(grandmaster=false, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
     node_1 = new RedundantNode(my_id = 1, left = 0, right = 2, offset = 20msec);
     
-    @interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
-    @interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    //@interface_uart(name="uart0", uart_device=0, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
+    //@interface_uart(name="uart1", uart_device=1, baud_rate=57600, data_bits=8, parity="UART_PARITY_EVEN", stop_bits=1, async=false)
     //@clock_sync(grandmaster=false, period=3500000000, max_adj=512000, kp=0.5, ki=0.1)
-    node_2 = new RedundantNode(my_id = 2, left = 1, right = 0, offset = 30msec);
+    //node_2 = new RedundantNode(my_id = 2, left = 1, right = 0, offset = 30msec);
     
-    @link(left="uart0", right="uart1")
-    @buffer(10)
-    node_0.left_neighbor_ctrl_out -> node_2.right_neighbor_ctrl_in after 50msec;
+    //@link(left="uart0", right="uart1")
+    //@buffer(10)
+    //node_0.left_neighbor_ctrl_out -> node_2.right_neighbor_ctrl_in after 50msec;
 
     @link(left="uart1", right="uart0")
     @buffer(10)
     node_0.right_neighbor_ctrl_out -> node_1.left_neighbor_ctrl_in after 50msec;
 
-    @link(left="uart0", right="uart1")
-    @buffer(10)
-    node_0.left_neighbor_data_out -> node_2.right_neighbor_data_in after 50msec;
+    //@link(left="uart0", right="uart1")
+    //@buffer(10)
+    //node_0.left_neighbor_data_out -> node_2.right_neighbor_data_in after 50msec;
     
     @link(left="uart1", right="uart0")
     @buffer(10)
@@ -42,18 +42,18 @@ federated reactor { #38400
     @buffer(10)
     node_1.left_neighbor_ctrl_out -> node_0.right_neighbor_ctrl_in after 50msec;
 
-    @link(left="uart1", right="uart0")
-    @buffer(10)
-    node_1.right_neighbor_ctrl_out -> node_2.left_neighbor_ctrl_in after 50msec;
+    //@link(left="uart1", right="uart0")
+    //@buffer(10)
+    //node_1.right_neighbor_ctrl_out -> node_2.left_neighbor_ctrl_in after 50msec;
 
     @link(left="uart0", right="uart1")
     @buffer(10)
     node_1.left_neighbor_data_out -> node_0.right_neighbor_data_in after 50msec;
     
-    @link(left="uart1", right="uart0")
-    @buffer(10)
-    node_1.right_neighbor_data_out -> node_2.left_neighbor_data_in after 50msec;
-    
+    //@link(left="uart1", right="uart0")
+    //@buffer(10)
+    //node_1.right_neighbor_data_out -> node_2.left_neighbor_data_in after 50msec;
+    /*
     @link(left="uart0", right="uart1")
     @buffer(10)
     node_2.left_neighbor_ctrl_out -> node_1.right_neighbor_ctrl_in after 50msec;
@@ -69,4 +69,5 @@ federated reactor { #38400
     @link(left="uart1", right="uart0")
     @buffer(10)
     node_2.right_neighbor_data_out -> node_0.left_neighbor_data_in after 50msec;
+    */
 }

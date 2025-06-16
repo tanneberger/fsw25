@@ -1,35 +1,32 @@
-target uC {
-  platform: rp2040,
-  logging: info 
-}
+target uC
 
-import Veml7700 from "./lib/Veml7700.lf"
 import GpioPin from "./lib/GpioPin.lf"
+import Veml7700 from "./lib/Veml7700.lf"
 
 main reactor {
-  //veml7700 = new Veml7700(rate = 250msec);
-  running_led = new GpioPin(pin = 25);
+  veml7700 = new Veml7700(rate=500msec);
+  gpio_left = new GpioPin(pin = 20, start_value = 0);
+  gpio_leader = new GpioPin(pin = 19, start_value = 0);
+  gpio_right = new GpioPin(pin = 18, start_value = 0);
 
-  timer t(1sec, 200msec);
+  gpio_center_0 = new GpioPin(pin = 10, start_value = 0, disconnect = 1);
+  gpio_center_1 = new GpioPin(pin = 11, start_value = 0, disconnect = 1);
+  gpio_center_2 = new GpioPin(pin = 12, start_value = 0, disconnect = 1);
 
-  gpio_left = new GpioPin(pin = 20, start_value = 1, disconnect = 0);
-  gpio_leader = new GpioPin(pin = 19, start_value = 1, disconnect = 0);
-  gpio_right = new GpioPin(pin = 18, start_value = 1, disconnect = 0);
+  gpio_status = new GpioPin(pin = 25, start_value = 1);
 
-  gpio_center_0 = new GpioPin(pin = 10);
-  gpio_center_1 = new GpioPin(pin = 11);
-  gpio_center_2 = new GpioPin(pin = 12);
+  timer t(500msec, 500msec);
 
-  reaction (t) -> gpio_left.toggle, gpio_leader.toggle, gpio_right.toggle, running_led.toggle  {=
+  reaction (t) -> gpio_status.toggle, gpio_left.toggle, gpio_right.toggle, gpio_leader.toggle {=
+    lf_set(gpio_status.toggle, 0);
     lf_set(gpio_left.toggle, 0);
-    lf_set(gpio_leader.toggle, 0);
     lf_set(gpio_right.toggle, 0);
-    lf_set(running_led.toggle, 0);
+    lf_set(gpio_leader.toggle, 0);
   =}
 
-  //reaction(veml7700.sensor_value) -> gpio_center_0.set, gpio_center_1.set, gpio_center_2.set {= // gpio_center_0.set, gpio_center_1.set, gpio_center_2.set {=
-  //  lf_set(gpio_center_0.set, veml7700.sensor_value->value > 150);
-  //  lf_set(gpio_center_1.set, veml7700.sensor_value->value > 300);
-  //  lf_set(gpio_center_2.set, veml7700.sensor_value->value > 500);
-  //=}
+  reaction (veml7700.sensor_value) -> gpio_center_0.set, gpio_center_1.set, gpio_center_2.set {=
+    lf_set(gpio_center_0.set, veml7700.sensor_value > 200);
+    lf_set(gpio_center_1.set, veml7700.sensor_value > 400);
+    lf_set(gpio_center_2.set, veml7700.sensor_value > 600);
+  =}
 }

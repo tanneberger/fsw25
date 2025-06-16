@@ -1,0 +1,11 @@
+target uC {
+  platform: Native
+}
+
+main reactor {
+  timer t(1s, 1s);
+
+  reaction(t) {=
+    printf("Hello World\n\n\n");
+  =}
+}

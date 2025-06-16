@@ -1,0 +1,20 @@
+target uC
+
+preamble {=
+    #include <stdio.h>
+=}
+
+
+reactor Veml7700(rate: interval_t = 250msec) {
+    timer read_sensor_timer(500msec, rate);
+    output sensor_value: int;
+
+    reaction (startup) {=
+        srand(time(NULL));
+    =}
+
+    reaction (read_sensor_timer) -> sensor_value {=
+        lf_set(sensor_value, rand() % 700);
+    =}
+}
+
